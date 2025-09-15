@@ -1,19 +1,25 @@
 const fs = require("fs").promises;
 const http = require("http");
+const url = requie("url");
 
 const server = http.createServer(async (req, res) => {
-  if (req.url === "/" && req.method === "GET") {
+  if (req.url === "/notes" && req.method === "GET") {
     //readAll
 
     try {
-      // Try to access the file
-      await fs.access("notes.json");
-      console.log(`file exits`);
-
-      const data = await fs.readFile("notes.json", "utf8");
-      res.writeHead(200, { "Content-Type": "application/json" });
+      const parsedurl = url.parse(req.url, true); //the url is always read as string therfore convert into Int
+      const query = parsedurl.query;
+      const data = JSON.parse(await fs.readFile("notes.json", "utf8"));
+      if(query.limit){
+        data = data.slice(0,parseInt(query.limit));
+      }
+      if(query.sender){
+        data = data.filter(note => note.sender===sender); 
+      }
+      res.writeHead(200,{"Content-Type":"application/json"});
       res.end(data);
-    } catch (err) {
+      }
+      catch (err) {
       // File does not exist, so create it
       const notes = [
         {
@@ -52,7 +58,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.url === "/" && req.method === "POST") {
     try {
-      console.log(`POST TARTED`);
+      console.log(`POST STARTED`);
       let data = JSON.parse(await fs.readFile("notes.json", "utf8")); //utf8 redas the data in string instead of binary buffer
       console.log(`POST GOING`);
       const id = data[data.length - 1].id + 1;
